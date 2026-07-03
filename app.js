@@ -1,9 +1,32 @@
 const app = document.getElementById("app");
-const BUILD = "v800-interactive";
+const BUILD = "v900-redesigned";
 console.log("Weekly QA Counter", BUILD);
 
+// ---------- icon set (inline SVG, no emoji, currentColor so it themes for free) ----------
+
+const ICONS = {
+  check: '<path d="M4 12.5l5 5L20 6"/>',
+  alert: '<path d="M12 3.5 21.5 20h-19L12 3.5Z"/><path d="M12 9.5v5"/><circle cx="12" cy="17.2" r=".6" fill="currentColor" stroke="none"/>',
+  moon: '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5Z"/>',
+  sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.85 1.85M17.55 17.55l1.85 1.85M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.85-1.85M17.55 6.45l1.85-1.85"/>',
+  refresh: '<path d="M20 11a8 8 0 0 0-14.6-4.5M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14.6 4.5M20 20v-5h-5"/>',
+  logout: '<path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M15 16l4-4-4-4M19 12H9"/>',
+  flame: '<path d="M12 2.5c1.2 3-1.4 3.9-1.4 6.6 0 1.6 1.1 2.4 2.3 2.4 1.6 0 2.6-1.4 2.3-3.2C17.8 10.8 19 13 19 15.5A7 7 0 1 1 5 15.5c0-3.4 2.2-5.2 4-7.4C10.6 6 11 4 12 2.5Z"/>',
+  trend: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+  hourglass: '<path d="M6 3h12M6 21h12M7 3c0 5 5 5.5 5 9s-5 4-5 9M17 3c0 5-5 5.5-5 9s5 4 5 9"/>',
+  users: '<circle cx="9" cy="8" r="3.2"/><path d="M2.8 19c.6-3.2 3-5 6.2-5s5.6 1.8 6.2 5"/><circle cx="17.5" cy="9" r="2.4"/><path d="M15.8 14.2c2.3.3 4.1 1.9 4.6 4.8"/>',
+  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>',
+  calendarRange: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M8 14h3M13 14h3M8 17.5h3"/>',
+  done: '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.3l2.6 2.6 5-5.4"/>'
+};
+function icon(name, size = 18) {
+  const body = ICONS[name] || ICONS.check;
+  return `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+}
+
 if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || String(window.SUPABASE_ANON_KEY).includes("PASTE_")) {
-  app.innerHTML = '<div class="auth-card"><div class="brand-mark">!</div><h1>Config missing</h1><p>Edit config.js and paste your Supabase URL and anon public key.</p></div>';
+  app.innerHTML = `<div class="auth-card"><div class="brand-mark alert">${icon("alert", 24)}</div><h1>Config missing</h1><p>Edit config.js and paste your Supabase URL and anon public key.</p></div>`;
   throw new Error("Missing config");
 }
 
@@ -94,10 +117,10 @@ function timeout(p, label, ms = 12000) {
 }
 
 function fatal(title, msg, detail = "") {
-  app.innerHTML = `<div class="auth-card"><div class="brand-mark">!</div><h1>${esc(title)}</h1><p>${esc(msg)}</p>${detail ? `<div class="error-box">${esc(detail)}</div>` : ""}<button onclick="location.reload()" style="margin-top:16px">Refresh page</button></div>`;
+  app.innerHTML = `<div class="auth-card"><div class="brand-mark alert">${icon("alert", 24)}</div><h1>${esc(title)}</h1><p>${esc(msg)}</p>${detail ? `<div class="error-box">${esc(detail)}</div>` : ""}<button onclick="location.reload()" style="margin-top:16px">Refresh page</button></div>`;
 }
 function loading(msg = "Loading your dashboard...") {
-  app.innerHTML = `<div class="auth-card"><div class="brand-mark">OK</div><h1>Weekly QA Counter</h1><p>${esc(msg)}</p><div class="debug-list">Build: ${BUILD}</div></div>`;
+  app.innerHTML = `<div class="auth-card"><div class="brand-mark">${icon("check", 22)}</div><h1>Weekly QA Counter</h1><p>${esc(msg)}</p><div class="debug-list">Build: ${BUILD}</div></div>`;
 }
 
 function fireConfetti() {
@@ -116,7 +139,10 @@ function toggleTheme() {
   const isDark = document.body.classList.toggle("dark");
   localStorage.setItem("qa_theme", isDark ? "dark" : "light");
   const btn = document.getElementById("themeBtn");
-  if (btn) btn.textContent = isDark ? "☀️" : "🌙";
+  if (btn) {
+    btn.innerHTML = icon(isDark ? "sun" : "moon", 18);
+    btn.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+  }
 }
 
 // ---------- auth ----------
@@ -137,7 +163,7 @@ async function init() {
 
 function renderLogin() {
   document.body.classList.remove("admin");
-  app.innerHTML = `<div class="auth-card"><div class="brand-mark">OK</div><h1>Weekly QA Counter</h1><p>Sign in to view your assigned agents and weekly QA progress.</p><div id="loginError"></div><form id="loginForm" class="form-stack"><input id="email" type="email" placeholder="Email" required><input id="password" type="password" placeholder="Password" required><button>Sign in</button></form><div class="debug-list">Build: ${BUILD}</div></div>`;
+  app.innerHTML = `<div class="auth-card"><div class="brand-mark">${icon("check", 22)}</div><h1>Weekly QA Counter</h1><p>Sign in to view your assigned agents and weekly QA progress.</p><div id="loginError"></div><form id="loginForm" class="form-stack"><input id="email" type="email" placeholder="Email" required><input id="password" type="password" placeholder="Password" required><button>Sign in</button></form><div class="debug-list">Build: ${BUILD}</div></div>`;
   document.getElementById("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("email").value.trim();
@@ -566,7 +592,7 @@ function renderDashboard() {
       <header class="app-header">
         <div class="header-content">
           <div class="brand-line">
-            <div class="logo-box">QA</div>
+            <div class="logo-box">${icon("check", 24)}</div>
             <div class="title-block">
               <h1>Weekly QA Counter</h1>
               <p>Week of ${esc(fmt(state.currentWeekStart))} - ${esc(state.user.email)}</p>
@@ -575,9 +601,9 @@ function renderDashboard() {
           <div class="header-actions">
             <div class="clock-card"><strong id="liveClock">--:--</strong><span id="liveDate">Loading date</span></div>
             <div class="reminder-card"><strong>Quick reminder</strong><span>${esc(remind())}</span></div>
-            <button id="themeBtn" title="Toggle dark mode">${isDark ? "☀️" : "🌙"}</button>
-            <button id="refreshBtn">Refresh</button>
-            <button class="danger" id="signOutBtn">Sign out</button>
+            <button id="themeBtn" title="Toggle dark mode" aria-label="${isDark ? "Switch to light mode" : "Switch to dark mode"}">${icon(isDark ? "sun" : "moon", 18)}</button>
+            <button id="refreshBtn">${icon("refresh", 16)}<span>Refresh</span></button>
+            <button class="danger" id="signOutBtn">${icon("logout", 16)}<span>Sign out</span></button>
           </div>
         </div>
         <div class="tabs-row">
@@ -587,13 +613,13 @@ function renderDashboard() {
       </header>
 
       <section class="stats-grid">
-        ${card("Done", t.total, "Current table")}
-        ${card("Target", t.target, "After fails")}
-        ${card("Left", t.left, "Remaining")}
-        ${card("Failed", t.fail, "Total failed count")}
-        ${card("Agents", `${t.done}/${t.agents}`, "Complete")}
-        ${card("MTD", state.personalMetrics.mtd, "Completed")}
-        ${card("YTD", state.personalMetrics.ytd, "Completed")}
+        ${card("done", "Done", t.total, "Current table")}
+        ${card("target", "Target", t.target, "After fails")}
+        ${card("hourglass", "Left", t.left, "Remaining")}
+        ${card("alert", "Failed", t.fail, "Total failed count")}
+        ${card("users", "Agents", `${t.done}/${t.agents}`, "Complete")}
+        ${card("calendar", "MTD", state.personalMetrics.mtd, "Completed")}
+        ${card("calendarRange", "YTD", state.personalMetrics.ytd, "Completed")}
       </section>
 
       <main class="dashboard-grid">
@@ -623,7 +649,7 @@ function renderDashboard() {
       </main>
 
       <footer class="footer">
-        <span>Weekly QA Counter v800 interactive.</span>
+        <span>Weekly QA Counter v900.</span>
         <span>No ticket/customer data should be stored here.</span>
       </footer>
     </div>
@@ -634,8 +660,8 @@ function renderDashboard() {
   renderTrendChart();
 }
 
-function card(label, value, sub) {
-  return `<div class="stat-card"><div class="stat-icon">${esc(label.slice(0, 1))}</div><div class="stat-label">${esc(label)}</div><div class="stat-value">${esc(value)}</div><div class="stat-sub">${esc(sub)}</div></div>`;
+function card(iconName, label, value, sub) {
+  return `<div class="stat-card"><div class="stat-icon">${icon(iconName, 18)}</div><div class="stat-label">${esc(label)}</div><div class="stat-value">${esc(value)}</div><div class="stat-sub">${esc(sub)}</div></div>`;
 }
 
 function userNote() {
@@ -705,15 +731,15 @@ function streaksPanel() {
   }
   if (!rows.length) return "";
   return `<section class="side-section">
-    <h3>🔥 Target streaks</h3>
+    <h3>${icon("flame")}Target streaks</h3>
     <p>Consecutive completed weeks hitting target.</p>
-    <div class="streak-list">${rows.map((r) => `<div class="streak-row"><span>${esc(r.name)}</span><strong>${r.streak > 0 ? `🔥 ${r.streak} ${r.streak === 1 ? "week" : "weeks"}` : "—"}</strong></div>`).join("")}</div>
+    <div class="streak-list">${rows.map((r) => `<div class="streak-row"><span>${esc(r.name)}</span><strong class="${r.streak > 0 ? "streak-on" : ""}">${r.streak > 0 ? `${icon("flame", 14)} ${r.streak} ${r.streak === 1 ? "week" : "weeks"}` : "—"}</strong></div>`).join("")}</div>
   </section>`;
 }
 
 function trendChartPanel() {
   return `<section class="side-section">
-    <h3>📈 Weekly trend</h3>
+    <h3>${icon("trend")}Weekly trend</h3>
     <p>Total completed count, last ${ANALYTICS_WEEKS} weeks.</p>
     <div style="height:220px"><canvas id="trendChart"></canvas></div>
   </section>`;
@@ -723,7 +749,7 @@ function failHistoryPanel() {
   const rows = agentFailHistory();
   if (!rows.length) return "";
   return `<section class="panel">
-    <div class="panel-header"><div><h2>⚠️ Fail-rate history</h2><p>Based on the last ${ANALYTICS_WEEKS} weeks of data.</p></div></div>
+    <div class="panel-header"><div><h2>${icon("alert", 20)}Fail-rate history</h2><p>Based on the last ${ANALYTICS_WEEKS} weeks of data.</p></div></div>
     <div class="table-wrap"><table class="qa-table">
       <thead><tr><th>Agent</th><th>Weeks tracked</th><th>Weeks w/ fail</th><th>Fail rate</th></tr></thead>
       <tbody>${rows.map((r) => `<tr>
@@ -801,7 +827,7 @@ function history() {
     if (s.done) done++;
   }
   return `<section class="panel">
-    <div class="panel-header"><div><h2>Previous week summary</h2><p>Select any saved week and review the final summary below the live tracker.</p></div></div>
+    <div class="panel-header"><div><h2>${icon("calendarRange", 20)}Previous week summary</h2><p>Select any saved week and review the final summary below the live tracker.</p></div></div>
     <div class="history-grid">
       <div class="side-section"><h3>Choose week</h3><select id="historyWeekSelect">${state.historyWeeks.map((w) => `<option value="${w.week_start}" ${state.historyWeek === w.week_start ? "selected" : ""}>Week of ${esc(fmt(w.week_start))}</option>`).join("")}</select></div>
       <div>
